@@ -286,7 +286,7 @@ def send_file(filename: str, address: (str, int), ip, port):
 def contactIndexServer(noPeer, peersNeeded, filesNeeded):
     #Connect to Index Server
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.setblocking(False)
+    #client_socket.setblocking(False)
     client_socket.connect((IP, PORT))
 
     #If we're not contacting server because we found a peer no longer in the network, then continue, otherwise go to else
@@ -315,7 +315,7 @@ def contactIndexServer(noPeer, peersNeeded, filesNeeded):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    kind=input("Regular peer (not index server)? y/n")
+    kind=input("Index server? y/n: ")
     if kind=='y':
         mypath="C:/Users/Derick/Pictures/Captures"
         files = [f for f in listdir(mypath) if isfile(join(mypath, f))]
