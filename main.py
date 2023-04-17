@@ -78,7 +78,7 @@ def upload_file(conn_socket: socket, file_name: str, file_size: int):
 
 def indexServer():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.bind((IP, PORT))
+    client_socket.bind(('', PORT))
     client_socket.listen(1)
     while True:
         (conn_socket, addr) = client_socket.accept()
@@ -143,7 +143,7 @@ def contactPeers():
             if filesNeeded[i]==False:
                 actuallyNeeded[i]=filesNeeded[i]
         for x in peersNeeded:
-            client_socket.connect((x, peersNeeded[x]))
+            client_socket.connect(('', peersNeeded[x]))
             client_socket.sendto(str(actuallyNeeded), (x, peersNeeded[x]))
             client_socket.setblocking(True)
             ready = select.select([client_socket], [], [], 6)
@@ -173,7 +173,7 @@ def receiveFromPeers():
     #Listen out for a peer to contact you, then choose a file you have to give them and send it via send_file.
     arr=[]
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.bind((myIP, PORT))
+    client_socket.bind(('', PORT))
     client_socket.listen(1)
     while True:
         (conn_socket, addr) = client_socket.accept()
@@ -287,7 +287,7 @@ def contactIndexServer(noPeer, peersNeeded, filesNeeded):
     #Connect to Index Server
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     #client_socket.setblocking(False)
-    client_socket.connect((IP, PORT))
+    client_socket.connect(('', PORT))
 
     #If we're not contacting server because we found a peer no longer in the network, then continue, otherwise go to else
     if not noPeer:
