@@ -6,7 +6,6 @@ import ast
 import select
 from os import listdir
 from os.path import isfile, join
-from threading import Thread
 
 #Index server ip and port
 IP = '127.0.0.1'  # default IP address of the server
@@ -81,17 +80,11 @@ def upload_file(conn_socket: socket, file_name: str, file_size: int):
             os.remove(file_name)
 
 def indexServer():
-    #if client is None:
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     client_socket.bind((IP, PORT))
-    client_socket.listen(5)
-    #else:
-    #   client_socket=client
+    client_socket.listen(1)
     while True:
-        print('index while')
         (conn_socket, addr) = client_socket.accept()
-        print('accept')
         message, other_address = conn_socket.recvfrom(BUFFER_SIZE)
         messArray = ast.literal_eval(message.decode())
         if message.decode()[:1]==b"No":
@@ -122,17 +115,15 @@ def indexServer():
             allPeers[messArray[0]]=messArray[1]
             message2, other_address = conn_socket.recvfrom(BUFFER_SIZE)
             if message2==b"Continue":
-                for p in allFiles:
-                    allFiles[p]=False
                 conn_socket.sendto(str(allFiles).encode(), (addr[0], PORT))
         #Tentative!
-        #conn_socket.close()
+        conn_socket.close()
         #break
     client_socket.close()
     f=allFiles
     for j in allFiles:
         allFiles[j]=True
-    receiveFromPeers(allFiles, False, conn_socket, addr)
+    receiveFromPeers(allFiles, True, None, None)
 
 def indexChoosePeers(all):
     #Choose  up to 5 peers from allPeers to send to connected peer, in incrementing order (i.e. send a peer index 0 to 5's peers, then index 1 to 6's peers for the next peer to connect, and so on. If end of dict reached, start over.
@@ -248,30 +239,7 @@ def contactPeers(files, peers, client_socket):
             client_socket.sendto(b'Finished!', (o, int(peers[o])))
         receiveFromPeers(filesNeeded, True, None, None)
 
-def beginSending(conn_socket, addr, arr, files):
-    filesNeeded=files
-    while True:
-        print('receive')
-        message, other_address = conn_socket.recvfrom(BUFFER_SIZE)
-        print("Message", message)
-        if message != b'Finished!':
-            messArray = ast.literal_eval(message.decode())
-            for y in messArray:
-                print('for')
-                if y in filesNeeded:
-                    if filesNeeded[y] == True:
-                        arr.append(y)
-                        arr.append(path.getsize(y))
-                        conn_socket.sendto(str(arr).encode(), (addr[0], PORT))
-                        message2, other_address = conn_socket.recvfrom(BUFFER_SIZE)
-                        if message2 == b"OK":
-                            send_file(conn_socket, y, (addr[0], PORT), addr[0], PORT, filesNeeded)
-                            break
-        else:
-            break
-    print('break')
-    conn_socket.close()
-    receiveFromPeers(filesNeeded, True, None, None)
+
 
 def receiveFromPeers(files, bind, client, address):
     print('hello')
@@ -282,63 +250,37 @@ def receiveFromPeers(files, bind, client, address):
     if bind:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        client_socket.bind((IP, PORT))
-        client_socket.listen(1)
-        print('listen')
+        print(myIP)
+        print(myPort)
+        client_socket.bind((myIP, myPort))
+        client_socket.listen(5)
     else:
         client_socket=client
     while True:
         print('while')
         if bind:
-            print('bind')
             (conn_socket, addr) = client_socket.accept()
-            print('new thread')
-            #Thread(target=beginSending(conn_socket, addr, arr, filesNeeded))
-            #beginSending(conn_socket, addr, arr, filesNeeded)
-
         else:
             conn_socket=client_socket
             addr = address
-            #beginSending(conn_socket, addr, arr, filesNeeded)
-            '''
-            print('bind2')
-            client.bind((IP, PORT))
-            client.listen(1)
-            (conn_socket, addr)=client.accept()
-            conn_socket.recvfrom(BUFFER_SIZE)
-            print('new thread2')
-            Thread(target=beginSending(conn_socket, address, arr, filesNeeded))
-            '''
-
-
-        #'''
         print('receive')
         message, other_address = conn_socket.recvfrom(BUFFER_SIZE)
         print("Message",message)
-        if message!=b'Finished!':
-            messArray = ast.literal_eval(message.decode())
-            for y in messArray:
-                print('for')
-                if y in filesNeeded:
-                    if filesNeeded[y]==True:
-                        arr.append(y)
-                        arr.append(path.getsize(y))
-                        conn_socket.sendto(str(arr).encode(), (addr[0], PORT))
-                        message2, other_address=conn_socket.recvfrom(BUFFER_SIZE)
-                        if message2==b"OK":
-                            send_file(conn_socket,y,(addr[0], PORT),addr[0], PORT, filesNeeded)
-                            break
-        else:
-            break
-        #conn_socket.close()
-        #client_socket.close()
-        #receiveFromPeers2(filesNeeded, True, None, None)
-        print('break')
-        if allFiles=={}:
-            receiveFromPeers(filesNeeded, True, None, None)
-        else:
-            indexServer()
-        #'''
+        #if message!=b'Finished!':
+        messArray = ast.literal_eval(message.decode())
+        for y in messArray:
+            print('for')
+            if y in filesNeeded:
+                if filesNeeded[y]==True:
+                    arr.append(y)
+                    arr.append(path.getsize(y))
+                    conn_socket.sendto(str(arr).encode(), (addr[0], PORT))
+                    message2, other_address=conn_socket.recvfrom(BUFFER_SIZE)
+                    if message2==b"OK":
+                        send_file(conn_socket,y,(addr[0], PORT),addr[0], PORT, filesNeeded)
+                        break
+        #else:
+        #    break
         #if allFiles=={}:
         #    client_socket.close()
         #    conn_socket.close()
@@ -354,38 +296,7 @@ def receiveFromPeers(files, bind, client, address):
         #break
     #client_socket.close()
 
-def receiveFromPeers2(files, bind, client, address):
-    print('hello2')
-    filesNeeded=files
-    print(f"filesNeeded: {filesNeeded}")
-    #Listen out for a peer to contact you, then choose a file you have to give them and send it via send_file.
-    arr=[]
-    if bind:
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        client_socket.bind((IP, PORT))
-        client_socket.listen(1)
-    else:
-        client_socket=client
-    while True:
-        print('while')
-        if bind:
-            print('bind')
-            (conn_socket, addr) = client_socket.accept()
-            print('new thread')
-            Thread(target=beginSending(conn_socket, addr, arr, filesNeeded))
 
-        else:
-            #conn_socket=client_socket
-            #addr = address
-            #beginSending(conn_socket, addr, arr, filesNeeded)
-            print('bind2')
-            client.bind((IP, PORT))
-            client.listen(1)
-            (conn_socket, addr)=client.accept()
-            conn_socket.recvfrom(BUFFER_SIZE)
-            print('new thread2')
-            Thread(target=beginSending(conn_socket, address, arr, filesNeeded))
 
 def requestFiles(peers):
     # First, see how many files you need
@@ -479,7 +390,6 @@ def send_file(client_socket, filename: str, address: (str, int), ip, port, files
     #finally:
         #client_socket.close()
     receiveFromPeers(filesNeeded, False, client_socket, address)
-    #beginSending(client_socket,address,[],filesNeeded)
 
 def contactIndexServer(noPeer, peersNeeded, filesNeeded):
     #Connect to Index Server
@@ -512,7 +422,7 @@ def contactIndexServer(noPeer, peersNeeded, filesNeeded):
             if response2 != b'Error':
                 peersNeeded[responseArr[0]]=bool(responseArr[1])
 
-    contactPeers(filesNeeded, peersNeeded)
+    contactPeers(filesNeeded, peersNeeded, client_socket)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
