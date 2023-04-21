@@ -28,14 +28,6 @@ allPeers={}
 allFiles={}
 allPeersIndex=0
 
-# TODO Have peers close connections when done
-# TODO Peers able to leave the network
-# TODO Index server initial set up
-# TODO End while loops
-# TODO Peers switch to accepting connections to send files after receiving all of their own
-# TODO Tell peer what to do when starting up
-# TODO Check if files are actually being sent!!!!!!!!!!!
-
 def start_server(ip, port):
     # create a TCP socket object
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -155,7 +147,7 @@ def indexChoosePeers(all):
     return di
 
 def contactPeers(files, peers, client_socket):
-    if len(files)==0 and list(files.keys())[0]==IP:
+    if len(peers)==1 and list(peers.keys())[0]==IP:
         ip=''
         print('c1')
         filesNeeded=files
@@ -282,8 +274,8 @@ def receiveFromPeers(files, bind, client, address):
     if bind:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        client_socket.bind((IP, PORT))
-        client_socket.listen(1)
+        client_socket.bind((myIP, myPort))
+        client_socket.listen(5)
         print('listen')
     else:
         client_socket=client
@@ -512,7 +504,7 @@ def contactIndexServer(noPeer, peersNeeded, filesNeeded):
             if response2 != b'Error':
                 peersNeeded[responseArr[0]]=bool(responseArr[1])
 
-    contactPeers(filesNeeded, peersNeeded)
+    contactPeers(filesNeeded, peersNeeded, client_socket)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -529,6 +521,8 @@ if __name__ == '__main__':
         if len(sys.argv) == 3:
             IP = sys.argv[2]
         print(allFiles)
+        myIP=IP
+        myPort=PORT
         indexServer()
     else:
         contactIndexServer(False, peersNeeded, filesNeeded)
