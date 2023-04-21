@@ -57,9 +57,9 @@ def get_file_info(data: bytes) -> (str, int):
 def upload_file(conn_socket: socket, file_name: str, file_size: int):
     print('upload')
     # create a new file to store the received data
-    file_name += '.temp'
+    #file_name += '.temp'
     # please do not change the above line!
-    with open(file_name, 'wb') as file:
+    with open(file_name[6:], 'wb') as file:
         retrieved_size = 0
         try:
             while retrieved_size < file_size:
@@ -67,7 +67,7 @@ def upload_file(conn_socket: socket, file_name: str, file_size: int):
                 chunk, client_address = conn_socket.recvfrom(BUFFER_SIZE)
                 file.write(chunk)
                 retrieved_size += len(chunk)
-                print(file.write(chunk))
+                #print(file.write(chunk))
         except OSError as oe:
             print(oe)
             os.remove(file_name)
