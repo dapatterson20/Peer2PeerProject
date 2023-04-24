@@ -477,7 +477,7 @@ def contactIndexServer(noPeer, peersNeeded, filesNeeded):
     #Connect to Index Server
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     #client_socket.setblocking(False)
-    client_socket.connect((IP, PORT))
+    client_socket.connect(("", PORT))
 
     #If we're not contacting server because we found a peer no longer in the network, then continue, otherwise go to else
     if not noPeer:
