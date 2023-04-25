@@ -527,6 +527,7 @@ if __name__ == '__main__':
         myPort = PORT
         indexServer()
     else:
+        IP=input("Enter server IP: ")
         contactIndexServer(False, peersNeeded, filesNeeded)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

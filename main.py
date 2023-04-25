@@ -9,12 +9,13 @@ from os.path import isfile, join
 from threading import Thread
 
 #Index server ip and port
-IP = '127.0.0.1'  # default IP address of the server
+hostname=socket.gethostname()
+IP = socket.gethostbyname(hostname)  # default IP address of the server
 PORT = 12000  # change to a desired port number
 BUFFER_SIZE = 1024  # change to a desired buffer size
 
 #Regular peer ip and port
-hostname=socket.gethostname()
+#hostname=socket.gethostname()
 myIP=socket.gethostbyname(hostname)
 myPort=13500
 
@@ -510,6 +511,7 @@ def contactIndexServer(noPeer, peersNeeded, filesNeeded):
 if __name__ == '__main__':
     kind=input("Index server? y/n: ")
     if kind=='y':
+        print(IP)
         if len(sys.argv) < 2:
             print(f'SYNOPSIS: {sys.argv[0]} <filename> [IP address]')
             sys.exit(1)
